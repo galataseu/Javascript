@@ -1,17 +1,17 @@
-const http = require("http");
+const http = require('http');
 
-http
-  .get("http://jsonplaceholder.typicode.com/posts/1", (res) => {
-    let data = "";
+http.get("http://jsonplaceholder.typicode.com/posts/1", (res) => {
+  let data = '';
 
-    res.on("data", (chunk) => {
-      data += chunk;
-    });
-
-    res.on("end", () => {
-      console.log(JSON.parse(data));
-    });
-  })
-  .on("error", (err) => {
-    console.error("Erro: " + err.message);
+  //Um pedaço de dados foi recebido.
+  res.on('data', (chunk) => {
+    data += chunk;
   });
+
+  //A resposta inteira foi recebida. Imprime o resultado.
+  res.on('end', () => {
+    console.log(JSON.parse(data));
+  });
+}).on("error", (err) => {
+  console.log("Error: " + err.message);
+});
