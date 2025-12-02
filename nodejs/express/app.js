@@ -1,13 +1,16 @@
+// Importa o express
 import express from "express";
 
 const app = express();
 const PORT = 3000;
 
+// Middleware para definir o cabeçalho de Content-Type para todas as respostas
 app.use((req, res, next) => {
-    res.setHeader("Content-Type", "text/html; charset=utg-8");
-    next();
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    next()
 });
 
+// Roteamento básico
 app.get("/", (req, res) => {
     res.status(200).send("<h1>Página Inicial</h1>");
 });
@@ -17,13 +20,19 @@ app.get("/sobre", (req, res) => {
 });
 
 app.get("/contato", (req, res) => {
-    res.status(200).send("<h1>Fale Conosco</h1>");
+    res.status(200).send("<h1>Fale conosco</h1>");
 });
 
+app.get("/fotos", (req, res) => {
+    res.status(200).send("<h1>Nossas Fotos</h1>");
+});
+
+// Rota para lidar com páginas não encontradas (404)
 app.use((req, res) => {
-    res.status(404).send("<h1>Essa pagina nao existe seu OTARIO/h1>");
-});
+    res.status(404).send("<h1>404 - Página não encontrada</h1>");
+});    
 
+// Inicia o servidor
 app.listen(PORT, () => {
-    console.log('Servidor rodando em http://localhost:${PORT}');
+    console.log(`Servidor rodando em http://localhost:${PORT}`);
 });

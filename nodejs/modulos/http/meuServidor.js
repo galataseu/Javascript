@@ -1,78 +1,67 @@
-// app.js
-const express = require('express');
-const app = express();
+// native-server.js
 
-// Middleware para interpretar JSON no body das requisições
-app.use(express.json());
+// 1. Importar o módulo http nativo do Node.js
+import http from 'http';
 
-// --- ROTAS --- //
+const port = 3000;
+const host = 'localhost';
 
-// Rota inicial
-app.get('/', (req, res) => {
-  res.send('🌎 Bem-vindo à API de Teste com Node.js e Express!');
-});
-
-// Lista de usuários (simulação em memória)
-let usuarios = [
-  { id: 1, nome: 'Ana' },
-  { id: 2, nome: 'João' }
+// Dados de exemplo (simulando um banco de dados)
+const usuarios = [
+  { id: 1, nome: 'Ana Silva' },
+  { id: 2, nome: 'Carlos Souza' },
 ];
 
-// GET - Buscar todos os usuários
-app.get('/usuarios', (req, res) => {
-  res.json(usuarios);
-});
+// 2. Criar o servidor
+// A função passada para createServer é executada a cada requisição que chega.
+const server = http.createServer((req, res) => {
+  // --- Lógica de Roteamento Manual ---
 
-// GET - Buscar um usuário por ID
-app.get('/usuarios/:id', (req, res) => {
-  const id = parseInt(req.params.id);
-  const usuario = usuarios.find(u => u.id === id);
+  // Rota: GET /usuarios
+  if (req.url === '/usuarios' && req.method === 'GET') {
+    // 3. Configurar os cabeçalhos da resposta
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    // 4. Finalizar a resposta, enviando os dados (convertidos para string JSON)
+    res.end(JSON.stringify(usuarios));
 
-  if (!usuario) {
-    return res.status(404).json({ erro: 'Usuário não encontrado' });
+  // Rota: POST /usuarios
+  } else if (req.url === '/usuarios' && req.method === 'POST') {
+    let body = '';
+
+    // 5. Lidar com o corpo da requisição (que chega em "chunks")
+    // Node.js trabalha com streams, então os dados chegam em pedaços.
+    req.on('data', (chunk) => {
+      body += chunk.toString(); // Concatena cada pedaço de dado
+    });
+
+    // Quando todos os "chunks" chegarem, o evento 'end' é disparado
+    req.on('end', () => {
+      try {
+        const novoUsuario = JSON.parse(body);
+        // Aqui você adicionaria o usuário ao "banco de dados"
+        console.log('Novo usuário recebido:', novoUsuario);
+        
+        res.writeHead(201, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ message: 'Usuário criado com sucesso!', data: novoUsuario }));
+      } catch (error) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ message: 'Erro: JSON inválido' }));
+      }
+    });
+
+  // Rota: GET / (Página inicial)
+  } else if (req.url === '/' && req.method === 'GET') {
+    res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('Bem-vindo ao meu servidor nativo Node.js!');
+  
+  // Rota não encontrada
+  } else {
+    res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('404 - Página Não Encontrada');
   }
-
-  res.json(usuario);
 });
 
-// POST - Criar novo usuário
-app.post('/usuarios', (req, res) => {
-  const novoUsuario = {
-    id: usuarios.length + 1,
-    nome: req.body.nome
-  };
-
-  usuarios.push(novoUsuario);
-  res.status(201).json({ mensagem: 'Usuário criado com sucesso!', usuario: novoUsuario });
-});
-
-// PUT - Atualizar usuário
-app.put('/usuarios/:id', (req, res) => {
-  const id = parseInt(req.params.id);
-  const usuario = usuarios.find(u => u.id === id);
-
-  if (!usuario) {
-    return res.status(404).json({ erro: 'Usuário não encontrado' });
-  }
-
-  usuario.nome = req.body.nome || usuario.nome;
-  res.json({ mensagem: 'Usuário atualizado com sucesso!', usuario });
-});
-
-// DELETE - Remover usuário
-app.delete('/usuarios/:id', (req, res) => {
-  const id = parseInt(req.params.id);
-  usuarios = usuarios.filter(u => u.id !== id);
-  res.json({ mensagem: `Usuário ${id} removido com sucesso!` });
-});
-
-// Tratamento de rota inexistente
-app.use((req, res) => {
-  res.status(404).json({ erro: 'Rota não encontrada' });
-});
-
-// --- SERVIDOR --- //
-const PORT = 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
+// 6. Iniciar o servidor e fazê-lo "escutar" por requisições
+server.listen(port, host, () => {
+  console.log(`Servidor nativo rodando em http://${host}:${port}`);
 });
